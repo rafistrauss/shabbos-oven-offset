@@ -61,19 +61,23 @@
 
     .bake { background-color: #f39c12; }
     .warm { background-color: #3498db; top: 40px; }
+
+    input {
+      width: 4rem;
+    }
   </style>
 </head>
 <body>
   <h2>Oven Schedule Visualizer (with Clock Offset)</h2>
 
   <div class="controls">
-    <label for="realITE">Real-world Start Time (24h): </label>
-    <input type="number" id="realITE" value="20" min="0" max="23">
+    <label for="realITE">Real-world Start Time (24h, can use 0.5): </label>
+    <input type="number" id="realITE" value="20" min="0" max="23.5" step="0.5">
 
     &nbsp;&nbsp;
 
-    <label for="fakeClock">Oven Clock Time at Start (24h): </label>
-    <input type="number" id="fakeClock" value="18" min="0" max="23">
+    <label for="fakeClock">Oven Clock Time at Start (24h, can use 0.5): </label>
+    <input type="number" id="fakeClock" value="18" min="0" max="23.5" step="0.5">
   </div>
 
   <div class="legend">
@@ -100,8 +104,10 @@
 
     function formatTime(hour) {
       const h = ((hour % 24 + 24) % 24);
-      const suffix = h >= 12 ? "PM" : "AM";
-      const display = h % 12 || 12;
+      const whole = Math.floor(h);
+      const half = h - whole >= 0.5 ? ":30" : ":00";
+      const suffix = whole >= 12 ? "PM" : "AM";
+      const display = (whole % 12 || 12) + half;
       return `${display}${suffix}`;
     }
 
@@ -113,8 +119,8 @@
     }
 
     function updateSchedule() {
-      const realStart = parseInt(realInput.value, 10) || 0;
-      const fakeStart = parseInt(fakeInput.value, 10) || 0;
+      const realStart = parseFloat(realInput.value) || 0;
+      const fakeStart = parseFloat(fakeInput.value) || 0;
       const offset = (realStart - fakeStart + 24) % 24;
 
       const oven_bake1_start = fakeStart;
