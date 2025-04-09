@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Oven Clock Offset Visualizer</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2rem;
+    }
+
+    .controls {
+      margin-bottom: 1rem;
+    }
+
+    .legend {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 14px;
+    }
+
+    .legend-color {
+      width: 16px;
+      height: 16px;
+      border-radius: 3px;
+    }
+
+    .bake-color { background-color: #f39c12; }
+    .warm-color { background-color: #3498db; }
+
+    .timeline {
+      position: relative;
+      height: 140px;
+      border-top: 1px solid #ccc;
+      margin-top: 1rem;
+    }
+
+    .block {
+      position: absolute;
+      height: 30px;
+      border-radius: 4px;
+      color: white;
+      text-align: center;
+      line-height: 14px;
+      font-size: 12px;
+      font-weight: bold;
+      padding: 2px 4px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .bake { background-color: #f39c12; }
+    .warm { background-color: #3498db; top: 40px; }
+  </style>
+</head>
+<body>
+  <h2>Oven Schedule Visualizer (with Clock Offset)</h2>
+
+  <div class="controls">
+    <label for="realITE">Real-world Start Time (24h): </label>
+    <input type="number" id="realITE" value="20" min="0" max="23">
+
+    &nbsp;&nbsp;
+
+    <label for="fakeClock">Oven Clock Time at Start (24h): </label>
+    <input type="number" id="fakeClock" value="18" min="0" max="23">
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-color bake-color"></div>Bake Mode</div>
+    <div class="legend-item"><div class="legend-color warm-color"></div>Warm Mode</div>
+  </div>
+
+  <div class="timeline" id="timeline">
+    <div class="block bake" id="bake1"></div>
+    <div class="block warm" id="warm1"></div>
+    <div class="block bake" id="bake2"></div>
+    <div class="block warm" id="warm2"></div>
+  </div>
+
+  <script>
+    const pixelsPerHour = 50;
+    const bake1 = document.getElementById("bake1");
+    const warm1 = document.getElementById("warm1");
+    const bake2 = document.getElementById("bake2");
+    const warm2 = document.getElementById("warm2");
+
+    const realInput = document.getElementById("realITE");
+    const fakeInput = document.getElementById("fakeClock");
+
+    function formatTime(hour) {
+      const h = ((hour % 24 + 24) % 24);
+      const suffix = h >= 12 ? "PM" : "AM";
+      const display = h % 12 || 12;
+      return `${display}${suffix}`;
+    }
+
+    function positionBlock(block, realStart, realEnd, label) {
+      let duration = (realEnd - realStart + 24) % 24;
+      block.style.left = `${realStart * pixelsPerHour}px`;
+      block.style.width = `${duration * pixelsPerHour}px`;
+      block.innerHTML = `<div>${label}</div><div>${formatTime(realStart)} - ${formatTime(realEnd)}</div>`;
+    }
+
+    function updateSchedule() {
+      const realStart = parseInt(realInput.value, 10) || 0;
+      const fakeStart = parseInt(fakeInput.value, 10) || 0;
+      const offset = (realStart - fakeStart + 24) % 24;
+
+      const oven_bake1_start = fakeStart;
+      const oven_bake1_end = Math.min(fakeStart + 5, 24);
+      const oven_warm1_start = oven_bake1_end % 24;
+      const oven_warm1_end = 8;
+      const oven_bake2_start = 8;
+      const oven_bake2_end = 12;
+      const oven_warm2_start = 12;
+      const oven_warm2_end = fakeStart;
+
+      const shift = (t) => (t + offset) % 24;
+
+      positionBlock(bake1, shift(oven_bake1_start), shift(oven_bake1_end), "Bake 1");
+      positionBlock(warm1, shift(oven_warm1_start), shift(oven_warm1_end), "Warm 1");
+      positionBlock(bake2, shift(oven_bake2_start), shift(oven_bake2_end), "Bake 2");
+      positionBlock(warm2, shift(oven_warm2_start), shift(oven_warm2_end), "Warm 2");
+    }
+
+    realInput.addEventListener("input", updateSchedule);
+    fakeInput.addEventListener("input", updateSchedule);
+
+    updateSchedule();
+  </script>
+</body>
+</html>
